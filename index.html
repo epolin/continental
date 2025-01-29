@@ -81,7 +81,7 @@
       background: #4CAF50;
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 25px; /* Botones redondeados */
       cursor: pointer;
       font-size: 16px;
       transition: background 0.3s ease;
@@ -89,12 +89,22 @@
     button:hover {
       background: #45a049;
     }
-    input[type="number"] {
-      width: 80px;
-      padding: 5px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      text-align: center;
+    /* Estilo para los campos de entrada */
+    input[type="number"], input[type="text"] {
+      width: 120px; /* Ancho más adecuado */
+      padding: 8px; /* Espaciado interno */
+      border: 1px solid #ccc; /* Borde suave */
+      border-radius: 25px; /* Bordes redondeados */
+      text-align: center; /* Alineación centrada */
+      font-size: 14px; /* Tamaño de fuente */
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra ligera */
+      transition: border-color 0.3s ease, box-shadow 0.3s ease; /* Efecto al interactuar */
+    }
+    /* Efecto hover/focus para los campos de entrada */
+    input[type="number"]:hover, input[type="text"]:hover,
+    input[type="number"]:focus, input[type="text"]:focus {
+      border-color: #4CAF50; /* Color del borde al enfocar */
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); /* Sombra más pronunciada */
     }
     .hidden {
       display: none;
@@ -177,4 +187,175 @@
               <th>Partida 1</th>
               <th>Partida 2</th>
               <th>Partida 3</th>
-              <th>Partida
+              <th>Partida 4</th>
+              <th>Partida 5</th>
+              <th>Partida 6</th>
+              <th>Partida 7</th>
+              <th>Partida 8</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let players = [];
+    let scores = [];
+    let history = [];
+    let currentRound = 1;
+    const objectives = [
+      "2 tercias",
+      "1 tercia + 1 corrida",
+      "2 corridas",
+      "3 tercias",
+      "2 tercias + 1 corrida",
+      "1 tercia + 2 corridas",
+      "3 tercias",
+      "4 corridas"
+    ];
+
+    function addPlayer() {
+      const playerName = document.getElementById('playerName').value.trim();
+      if (playerName && !players.includes(playerName)) {
+        players.push(playerName);
+        updatePlayerList();
+        document.getElementById('playerName').value = '';
+        if (players.length >= 2) {
+          document.getElementById('startButton').disabled = false;
+        }
+      }
+    }
+
+    function updatePlayerList() {
+      const playerList = document.getElementById('playerList');
+      playerList.innerHTML = players.map(player => `<li>${player}</li>`).join('');
+    }
+
+    function startTournament() {
+      document.getElementById('registrationSection').classList.add('hidden');
+      document.getElementById('gameSection').classList.remove('hidden');
+      document.getElementById('leaderCrown').style.display = 'block';
+      initializeScores();
+      initializeHistory();
+      updateScoreTable();
+    }
+
+    function initializeScores() {
+      scores = players.map(player => ({ name: player, total: 0 }));
+    }
+
+    function initializeHistory() {
+      history = players.map(player => ({ name: player, rounds: Array(8).fill(0) }));
+    }
+
+    function updateScoreTable() {
+      const scoreBody = document.getElementById('scoreBody');
+      scoreBody.innerHTML = players.map(player => `
+        <tr>
+          <td>${player}</td>
+          <td>
+            <input type="number" min="0" value="0" data-player="${player}" />
+            <div class="invalid-message hidden" id="invalid-${player}">La cantidad de puntos no es válida.</div>
+          </td>
+        </tr>
+      `).join('');
+      document.getElementById('roundObjective').textContent = objectives[currentRound - 1];
+    }
+
+    function submitScores() {
+      const inputs = Array.from(document.querySelectorAll('#scoreBody input[type="number"]'));
+      let isValid = true;
+
+      // Limpiar mensajes de error previos
+      inputs.forEach(input => {
+        const errorMessage = document.getElementById(`invalid-${input.dataset.player}`);
+        errorMessage.classList.add('hidden');
+      });
+
+      // Validar que todos los campos estén completos y sean múltiplos de 5
+      inputs.forEach(input => {
+        const value = parseInt(input.value, 10);
+        if (isNaN(value) || value < 0 || value % 5 !== 0) {
+          isValid = false;
+          const errorMessage = document.getElementById(`invalid-${input.dataset.player}`);
+          errorMessage.classList.remove('hidden');
+        }
+      });
+
+      // Validar que solo un jugador tenga 0 puntos
+      const zeroPointPlayers = inputs.filter(input => input.value == 0).map(input => input.dataset.player);
+      if (zeroPointPlayers.length > 1) {
+        document.getElementById('errorMessage').textContent = "Solo un jugador puede tener 0 puntos.";
+        return;
+      }
+
+      if (!isValid) {
+        document.getElementById('errorMessage').textContent = "Por favor, corrija los errores en los campos de puntos.";
+        return;
+      }
+
+      document.getElementById('errorMessage').textContent = "";
+
+      // Actualizar puntuaciones y guardar historial
+      inputs.forEach(input => {
+        const player = scores.find(p => p.name === input.dataset.player);
+        const points = parseInt(input.value, 10);
+        player.total += points;
+
+        const playerHistory = history.find(h => h.name === input.dataset.player);
+        playerHistory.rounds[currentRound - 1] = points;
+      });
+
+      // Actualizar líder
+      const leader = scores.reduce((prev, curr) => (curr.total < prev.total ? curr : prev));
+      document.getElementById('currentLeader').textContent = leader.name;
+
+      // Avanzar ronda
+      currentRound++;
+      if (currentRound <= 8) {
+        updateProgress();
+        updateScoreTable();
+      } else {
+        endTournament();
+      }
+    }
+
+    function updateProgress() {
+      const progress = (currentRound - 1) / 8 * 100;
+      const progressFill = document.getElementById('progressFill');
+      progressFill.style.width = `${progress}%`;
+      document.getElementById('currentRound').textContent = currentRound;
+    }
+
+    function endTournament() {
+      document.getElementById('gameSection').classList.add('hidden');
+      document.getElementById('resultsSection').classList.remove('hidden');
+
+      scores.sort((a, b) => a.total - b.total);
+
+      // Mostrar resultados finales
+      const finalResultsBody = document.getElementById('finalResultsBody');
+      finalResultsBody.innerHTML = scores.map((player, index) => `
+        <tr class="${index === 0 ? 'winner' : ''}">
+          <td>${index === 0 ? '🏆 ' : ''}${player.name}</td>
+          <td>${player.total}</td>
+        </tr>
+      `).join('');
+
+      // Mostrar historial de puntos
+      const historyBody = document.getElementById('historyBody');
+      historyBody.innerHTML = history.map(playerHistory => `
+        <tr>
+          <td>${playerHistory.name}</td>
+          ${playerHistory.rounds.map(round => `<td>${round}</td>`).join('')}
+          <td>${scores.find(s => s.name === playerHistory.name).total}</td>
+        </tr>
+      `).join('');
+    }
+  </script>
+</body>
+</html>
