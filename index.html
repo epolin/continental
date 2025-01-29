@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Torneo Continental</title>
   <style>
     body {
@@ -19,9 +19,27 @@
       background: #4CAF50;
       color: white;
       width: 100%;
-      padding: 20px;
+      padding: 10px; /* Espacio reducido */
       text-align: center;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      position: relative; /* Para posicionar el líder flotante */
+    }
+    header h1 {
+      margin: 0;
+      font-size: 24px; /* Tamaño de fuente reducido */
+    }
+    .leader-crown {
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      transform: translateY(-50%);
+      background: #FFD700;
+      padding: 8px 12px;
+      border-radius: 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      font-weight: bold;
+      font-size: 14px;
+      display: none;
     }
     .container {
       width: 90%;
@@ -31,17 +49,6 @@
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    .leader-crown {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #FFD700;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-      font-weight: bold;
-      display: none;
     }
     .progress-bar {
       margin: 20px 0;
@@ -81,7 +88,7 @@
       background: #4CAF50;
       color: white;
       border: none;
-      border-radius: 25px; /* Botones redondeados */
+      border-radius: 25px;
       cursor: pointer;
       font-size: 16px;
       transition: background 0.3s ease;
@@ -89,22 +96,20 @@
     button:hover {
       background: #45a049;
     }
-    /* Estilo para los campos de entrada */
     input[type="number"], input[type="text"] {
-      width: 120px; /* Ancho más adecuado */
-      padding: 8px; /* Espaciado interno */
-      border: 1px solid #ccc; /* Borde suave */
-      border-radius: 25px; /* Bordes redondeados */
-      text-align: center; /* Alineación centrada */
-      font-size: 14px; /* Tamaño de fuente */
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra ligera */
-      transition: border-color 0.3s ease, box-shadow 0.3s ease; /* Efecto al interactuar */
+      width: 120px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 25px;
+      text-align: center;
+      font-size: 14px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }
-    /* Efecto hover/focus para los campos de entrada */
     input[type="number"]:hover, input[type="text"]:hover,
     input[type="number"]:focus, input[type="text"]:focus {
-      border-color: #4CAF50; /* Color del borde al enfocar */
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); /* Sombra más pronunciada */
+      border-color: #4CAF50;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
     }
     .hidden {
       display: none;
@@ -120,29 +125,39 @@
     }
     .history-table {
       margin-top: 30px;
-      overflow-x: auto; /* Agregamos scroll horizontal */
+      overflow-x: auto;
     }
     .history-table table {
-      min-width: 100%; /* Hacemos que la tabla sea responsive */
+      min-width: 100%;
     }
     .invalid-message {
       color: red;
       font-size: 12px;
       margin-top: 5px;
     }
+    footer {
+      margin-top: 20px;
+      padding: 10px;
+      background: #4CAF50;
+      color: white;
+      width: 100%;
+      text-align: center;
+      font-size: 14px;
+      box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+    }
   </style>
 </head>
 <body>
   <header>
     <h1>Torneo de Continental</h1>
+    <div class="leader-crown" id="leaderCrown">
+      🏆 Líder: <span id="currentLeader">-</span>
+    </div>
   </header>
-  <div class="leader-crown" id="leaderCrown">
-    🏆 Líder: <span id="currentLeader">-</span>
-  </div>
   <div class="container">
     <div id="registrationSection">
       <h2>Registro de Jugadores</h2>
-      <input type="text" id="playerName" placeholder="Nombre del jugador" />
+      <input type="text" id="playerName" placeholder="Nombre del jugador" onkeydown="handleEnter(event)" />
       <button onclick="addPlayer()">Agregar Jugador</button>
       <ul id="playerList"></ul>
       <button onclick="startTournament()" disabled id="startButton">Comenzar Torneo</button>
@@ -201,6 +216,9 @@
       </div>
     </div>
   </div>
+  <footer>
+    Made with ❤️ by kitoep
+  </footer>
 
   <script>
     let players = [];
@@ -227,6 +245,12 @@
         if (players.length >= 2) {
           document.getElementById('startButton').disabled = false;
         }
+      }
+    }
+
+    function handleEnter(event) {
+      if (event.key === 'Enter') {
+        addPlayer();
       }
     }
 
