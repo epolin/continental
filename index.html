@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Torneo Continental</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header {
+      background: #4CAF50;
+      color: white;
+      width: 100%;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .container {
+      width: 90%;
+      max-width: 800px;
+      margin-top: 20px;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .leader-crown {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #FFD700;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      font-weight: bold;
+      display: none;
+    }
+    .progress-bar {
+      margin: 20px 0;
+      background: #e0e0e0;
+      border-radius: 10px;
+      overflow: hidden;
+      height: 10px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: #FF5722;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 12px;
+      text-align: center;
+    }
+    th {
+      background: #4CAF50;
+      color: white;
+    }
+    .winner {
+      background: #C8E6C9;
+      font-weight: bold;
+    }
+    button {
+      padding: 12px 20px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    input[type="number"] {
+      width: 80px;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      text-align: center;
+    }
+    .hidden {
+      display: none;
+    }
+    .error {
+      color: red;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+    .trophy {
+      color: gold;
+      font-size: 24px;
+    }
+    .history-table {
+      margin-top: 30px;
+      overflow-x: auto; /* Agregamos scroll horizontal */
+    }
+    .history-table table {
+      min-width: 100%; /* Hacemos que la tabla sea responsive */
+    }
+    .invalid-message {
+      color: red;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Torneo de Continental</h1>
+  </header>
+  <div class="leader-crown" id="leaderCrown">
+    🏆 Líder: <span id="currentLeader">-</span>
+  </div>
+  <div class="container">
+    <div id="registrationSection">
+      <h2>Registro de Jugadores</h2>
+      <input type="text" id="playerName" placeholder="Nombre del jugador" />
+      <button onclick="addPlayer()">Agregar Jugador</button>
+      <ul id="playerList"></ul>
+      <button onclick="startTournament()" disabled id="startButton">Comenzar Torneo</button>
+    </div>
+    <div id="gameSection" class="hidden">
+      <h2>Partida <span id="currentRound">1</span>/8</h2>
+      <p><strong>Objetivo:</strong> <span id="roundObjective">2 tercias</span></p>
+      <table id="scoreTable">
+        <thead>
+          <tr>
+            <th>Jugador</th>
+            <th>Puntos</th>
+          </tr>
+        </thead>
+        <tbody id="scoreBody">
+        </tbody>
+      </table>
+      <div class="error" id="errorMessage"></div>
+      <button onclick="submitScores()">Enviar Resultados</button>
+      <div class="progress-bar">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+    </div>
+    <div id="resultsSection" class="hidden">
+      <h2>Resultados Finales</h2>
+      <table id="finalResultsTable">
+        <thead>
+          <tr>
+            <th>Jugador</th>
+            <th>Puntuación Total</th>
+          </tr>
+        </thead>
+        <tbody id="finalResultsBody">
+        </tbody>
+      </table>
+      <div class="history-table">
+        <h3>Historial de Puntos por Partida</h3>
+        <table id="historyTable">
+          <thead>
+            <tr>
+              <th>Jugador</th>
+              <th>Partida 1</th>
+              <th>Partida 2</th>
+              <th>Partida 3</th>
+              <th>Partida
